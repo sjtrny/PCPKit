@@ -1,0 +1,348 @@
+\documentclass{article}
+
+\usepackage[colorlinks=true]{hyperref}
+\usepackage[cmex10]{amsmath}
+\usepackage{bbm}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{comment}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{multirow}
+
+\DeclareMathOperator*{\argmin}{\mathrm{argmin}}
+\DeclareMathOperator*{\pro}{\mathcal P_{\Omega}}
+\DeclareMathOperator*{\pron}{\mathcal N_{\Omega}}
+\DeclareMathOperator*{\proa}{\mathcal P_{\Psi}}
+\newcommand{\BigO}[1]{\ensuremath{\operatorname{O}\left(#1\right)}}
+
+\begin{document}
+
+\title{PCPKit Documentation}
+\author{Stephen Tierney}
+\maketitle
+
+\section{Function Listing}
+
+\begin{table}[!h]
+{\small{
+\centering
+
+\begin{tabular}{c | c | c}
+
+\hline
+Problem & Function & Section\\
+
+\hline
+{\bf Matrix Completion - Noise Free}\\
+
+\hline
+$\begin{array}{c} \min_{\mathbf A} \; \tau \| \mathbf A \|_* +  \frac{1}{2} \| \mathbf{ A } \|_F^2\\
+\text{s.t.} \; \pro (\mathbf M) = \pro (\mathbf A) \end{array}$ & mc\_svt	& \ref{mc_svt}\\
+
+\hline
+\multirow{2}{*}{$\begin{array}{c} \min_{\mathbf A} \; \tau \| \mathbf A \|_*\\
+\text{s.t.} \; \pro (\mathbf M) = \pro (\mathbf A) \end{array}$} & mc\_ialm	& \ref{mc_ialm}\\
+		& solve\_lin	& \ref{mc_lin}\\
+		
+\hline
+{\bf Matrix Completion - Noisy}\\
+
+\hline
+\multirow{3}{*}{$\begin{array}{c} \tau \| \mathbf A \|_*  +  \frac{\lambda}{2} \| \mathbf{ \pro (A) - \pro (M)  } \|^2_F  \end{array}$}
+	& mc\_relax\_lin & \ref{mc_relax}\\
+	& mc\_relax\_lin\_ext &\\
+	& mc\_relax\_lin\_acc &\\
+	
+\hline
+$\begin{array}{c} \min_{\mathbf{A,E}} \; \tau \| \mathbf A \|_* + \frac{\lambda}{2} \| \mathbf E \|_F^2\\
+\text{s.t.} \; \pro (\mathbf M) = \pro (\mathbf A) + \pro (\mathbf E) \end{array}$ & mc\_exact\_fro	& \ref{mc_exact_fro}  \\
+
+\hline
+{\bf Principal Component Pursuit}\\
+
+\hline
+$\begin{array}{c} \min_{\mathbf{A,E}} \; \| \mathbf A \|_* + \frac{\lambda}{2} \| \mathbf E \|_F^2\\
+\text{s.t.} \; \mathbf { M = A + E } \end{array}$ & pcp\_fro & \ref{pcp_fro} \\
+
+\hline
+$\begin{array}{c} \min_{\mathbf{A,E}} \; \| \mathbf A \|_* + \lambda \| \mathbf E \|_1\\
+\text{s.t.} \; \mathbf { M = A + E } \end{array}$ & pcp\_l1 & \ref{pcp_l1}  \\
+
+\hline
+$\begin{array}{c} \min_{\mathbf{A,E}} \; \| \mathbf A \|_* + \lambda \| \mathbf E \|_{1,2}\\
+\text{s.t.} \; \mathbf { M = A + E } \end{array}$ & pcp\_l1l2 & \ref{pcp_l1l2} \\
+
+
+\hline
+{\bf Selective PCP}\\
+
+\hline
+$\begin{array}{c} \min_{\mathbf A, \mathbf E} \;  \tau \| \mathbf A \|_* + \frac{\lambda}{2} \| \mathbf E \|^2_F \\
+\text{s.t.} \; \pro(\mathbf{M}) = \pro(\mathbf{A}) \nonumber \\
+\proa(\mathbf{M}) = \proa(\mathbf{A}) + \proa(\mathbf E) \nonumber \\  \end{array}$  & sel\_pcp & \ref{sel_pcp}
+
+\end{tabular}
+}}
+\end{table}
+
+\newpage
+\section{Matrix Completion}
+
+\subsection{Noise Free Data}
+
+\subsubsection{SVT}
+\label{mc_svt}
+
+The function
+\begin{align}
+[ \mathbf A, \mathbf{f\_values}, \mathbf{stop\_vals} ] = \text{mc\_svt}( \mathbf M, \Omega, \tau, \mu, iterations, tol )\notag 
+\end{align}
+solves the following
+\begin{align}
+\min_{\mathbf A} \; \tau \| \mathbf A \|_* +  \frac{1}{2} \| \mathbf{ A } \|_F^2 \\
+\text{s.t.} \; \pro (\mathbf M) = \pro (\mathbf A) \nonumber 
+\end{align}\
+as proposed by the authors of \cite{cai2010singular}.
+
+\begin{itemize}
+\item $\mathbf M$ - matrix with observed entries
+\item $\Omega$ - vector of constrained matrix indices
+\item $\tau$ - regularisation (optional)
+\item $\mu$ - step size (optional)
+\item $iterations$ - maximum number of iterations (optional)
+\item $tol$ - stopping criteria tolerance (optional)
+\end{itemize}
+
+\subsubsection{Inexact ALM}
+\label{mc_ialm}
+
+The function
+\begin{align}
+[ \mathbf A, \mathbf{f\_vals}, \mathbf{stop\_vals} ] = \text{mc\_ialm}( \mathbf M, \Omega, \tau, \mu, iterations, tol )\notag 
+\end{align}
+solves the following
+\begin{align}
+\min_{\mathbf A} \; \tau \| \mathbf A \|_* \\
+\text{s.t.} \; \pro (\mathbf M) = \pro (\mathbf A) \nonumber 
+\end{align}
+as proposed by the authors of \cite{lin2010augmented}.
+
+\begin{itemize}
+\item $\mathbf M$ - matrix with observed entries
+\item $\Omega$ - vector of constrained matrix indices
+\item $\tau$ - regularisation (optional)
+\item $\mu$ - step size (optional)
+\item $iterations$ - maximum number of iterations (optional)
+\item $tol$ - stopping criteria tolerance (optional)
+\end{itemize}
+
+\subsubsection{Linearised ALM}
+\label{mc_lin}
+
+The function
+\begin{align}
+[ \mathbf A, \mathbf{f\_vals}, \mathbf{stop\_vals} ] = \text{mc\_lin}( \mathbf M, \Omega, \tau, \mu, \rho, iterations, tol ) \notag 
+\end{align}
+solves the following
+\begin{align}
+\min_{\mathbf A} \; \tau \| \mathbf A \|_* \\
+\text{s.t.} \; \pro (\mathbf M) = \pro (\mathbf A) \nonumber 
+\end{align}
+
+\begin{itemize}
+\item $\mathbf M$ - matrix with observed entries
+\item $\Omega$ - vector of constrained matrix indices
+\item $\tau$ - regularisation (optional)
+\item $\mu$ - step size (optional)
+\item $\rho$ - linearisation step size (optional)
+\item $iterations$ - maximum number of iterations (optional)
+\item $tol$ - stopping criteria tolerance (optional)
+\end{itemize}
+
+\subsection{Noisey Data Relaxation}
+\label{mc_relax}
+
+The functions
+\begin{align}
+[ \mathbf A, \mathbf{f\_vals}, \mathbf{stop\_vals} ] = \text{mc\_relax\_lin}( \mathbf M, \Omega, \tau, \lambda, \rho, iterations, tol ) \notag \\
+[ \mathbf A, \mathbf{f\_vals}, \mathbf{stop\_vals} ] = \text{mc\_relax\_lin\_ext}( \mathbf M, \Omega, \tau, \lambda, \rho, iterations, tol ) \notag \\
+[ \mathbf A, \mathbf{f\_vals}, \mathbf{stop\_vals} ] = \text{mc\_relax\_lin\_acc}( \mathbf M, \Omega, \tau, \lambda, \rho, iterations, tol )\notag 
+\end{align}
+solve the following
+\begin{align}
+\min_{\mathbf A} \; \tau \| \mathbf A \|_*  +  \frac{\lambda}{2} \| \mathbf{ \pro (A) - \pro (M)  } \|^2_F 
+\end{align}
+with increasing convergence speed based on \cite{ji2009accelerated}.
+
+\begin{itemize}
+\item $\mathbf M$ - matrix with observed entries
+\item $\Omega$ - vector of constrained matrix indices
+\item $\tau$ - regularisation (optional)
+\item $\lambda$ - regularisation (optional)
+\item $\rho$ - linearisation step size (optional)
+\item $iterations$ - maximum number of iterations (optional)
+\item $tol$ - stopping criteria tolerance (optional)
+\end{itemize}
+
+\subsection{Noisey Data Exact}
+\label{mc_exact_fro}
+
+The function
+\begin{align}
+[ \mathbf A, \mathbf{f\_vals}, \mathbf{stop\_vals} ] = \text{solve\_exact\_fro}( \mathbf M, \Omega, \tau, \lambda, \rho, iterations, tol ) \notag
+\end{align}
+solve the following
+\begin{align}
+\min_{\mathbf A, \mathbf E} \; \tau \| \mathbf A \|_* + \frac{\lambda}{2} \| \mathbf E \|_F^2\\
+\text{s.t.} \; \pro (\mathbf M) = \pro (\mathbf A) + \pro (\mathbf E) \nonumber 
+\end{align}
+
+\begin{itemize}
+\item $\mathbf M$ - matrix with observed entries
+\item $\Omega$ - vector of constrained matrix indices
+\item $\tau$ - regularisation (optional)
+\item $\lambda$ - regularisation (optional)
+\item $\rho$ - linearisation step size (optional)
+\item $iterations$ - maximum number of iterations (optional)
+\item $tol$ - stopping criteria tolerance (optional)
+\end{itemize}
+
+
+\newpage
+\section{Principal Component Pursuit}
+
+\subsection{PCP Gaussian}
+\label{pcp_fro}
+
+The function
+\begin{align}
+[ \mathbf A ] = \text{pcp\_fro}( \mathbf M, \lambda ) \notag
+\end{align}
+solve the following
+\begin{align}
+\min_{\mathbf{A, E}} \; \| \mathbf A \|_* + \frac{\lambda}{2} \| \mathbf E \|_F^2\\
+\text{s.t.} \; \mathbf { M = A + E } \nonumber 
+\end{align}
+
+\begin{itemize}
+\item $\mathbf M$ - matrix with observed entries
+\item $\lambda$ - regularisation
+\end{itemize}
+
+\subsection{PCP Sparse}
+\label{pcp_l1}
+
+The function
+\begin{align}
+[ \mathbf A ] = \text{pcp\_l1}( \mathbf M, \lambda ) \notag
+\end{align}
+solve the following
+\begin{align}
+\min_{\mathbf{A, E}} \; \| \mathbf A \|_* + \lambda \| \mathbf E \|_1\\
+\text{s.t.} \; \mathbf { M = A + E } \nonumber 
+\end{align}
+
+\begin{itemize}
+\item $\mathbf M$ - matrix with observed entries
+\item $\lambda$ - regularisation
+\end{itemize}
+
+\subsection{PCP Column-wise Gaussian}
+\label{pcp_l1l2}
+
+The function
+\begin{align}
+[ \mathbf A ] = \text{pcp\_l1l2}( \mathbf M, \lambda ) \notag
+\end{align}
+solves the following
+\begin{align}
+\min_{\mathbf{A, E}} \; \| \mathbf A \|_* + \lambda \| \mathbf E \|_{1,2}\\
+\text{s.t.} \; \mathbf { M = A + E } \nonumber 
+\end{align}
+
+\begin{itemize}
+\item $\mathbf M$ - matrix with observed entries
+\item $\lambda$ - regularisation
+\end{itemize}
+
+\newpage
+\section{Selective PCP}
+\label{sel_pcp}
+
+The function
+\begin{align*}
+[ \mathbf A ] = \text{sel\_pcp}( \mathbf M, \tau, \lambda, \Omega, \Psi )
+\end{align*}
+solves the following
+\begin{align*}
+\min_{\mathbf A, \mathbf E} \;  \tau \| \mathbf A \|_* + \frac{\lambda}{2} \| \mathbf E \|^2_F \\
+\text{s.t.} \; \pro(\mathbf{M}) = \pro(\mathbf{A}) \nonumber \\
+\proa(\mathbf{M}) = \proa(\mathbf{A}) + \proa(\mathbf E) \nonumber 
+\end{align*}
+
+\begin{itemize}
+\item $\mathbf M$ - matrix with observed entries
+\item $\tau$ - regularisation
+\item $\lambda$ - regularisation
+\item $\Omega$ - uncorrupted indices
+\item $\Psi$ - noisy indices
+\end{itemize}
+
+
+%The function
+%\begin{align}
+%[ \mathbf A, \mathbf{f\_vals}, \mathbf{stop\_vals} ] = \text{solve\_mixed}( \mathbf M, \Omega, \mathbf H, \Omega_H, \tau, \mu, \rho, iterations, tol ) \notag 
+%\end{align}
+%solves the following
+%\begin{align}
+%\min_{\mathbf A} \; \tau \| \mathbf A \|_* + \frac{\lambda}{2} \| \proe(\mathbf A) -  \proe(\mathbf H) \|^2_F \\
+%\text{s.t.} \; \pro(\mathbf{M}) = \pro(\mathbf{A}) \nonumber
+%\label{objective}
+%\end{align}
+%
+%\begin{itemize}
+%\item $\mathbf M$ - matrix with observed entries
+%\item $\Omega$ - vector of constrained matrix indices
+%\item $\mathbf H$ - matrix with approximate entries
+%\item $\Omega_H$ - vector of approximately penalised indices
+%\item $\tau$ - regularisation (optional)
+%\item $\mu$ - step size (optional)
+%\item $\rho$ - linearisation step size (optional)
+%\item $iterations$ - maximum number of iterations (optional)
+%\item $tol$ - stopping criteria tolerance (optional)
+%\end{itemize}
+%
+%\subsection{Noisey Data}
+%
+%The functions
+%\begin{align}
+%[ \mathbf A, \mathbf{f\_vals}, \mathbf{stop\_vals} ] = \text{solve\_mixed\_e}( \mathbf M, \Omega, \mathbf H, \Omega_H, \tau, \mu, \rho, iterations, tol ) \notag \\
+%[ \mathbf A, \mathbf{f\_vals}, \mathbf{stop\_vals} ] = \text{solve\_mixed\_e\_ext}( \mathbf M, \Omega, \mathbf H, \Omega_H, \tau, \mu, \rho, iterations, tol ) \notag  \\
+%[ \mathbf A, \mathbf{f\_vals}, \mathbf{stop\_vals} ] = \text{solve\_mixed\_e\_acc}( \mathbf M, \Omega, \mathbf H, \Omega_H, \tau, \mu, \rho, iterations, tol ) \notag 
+%\end{align}
+%solve the following
+%\begin{align}
+%\min_{\mathbf A} \; \tau \| \mathbf A \|_* + \frac{\lambda}2\|\proe(\mathbf A) - \proe(\mathbf H) \|^2_F +  \frac{\lambda_2}{2} \| \mathbf{ \pro(E)} \|^2_F \\
+%\text{s.t.} \; \mathbf{\pro(M) = \pro(A) +  \pro(E)} \nonumber 
+%\end{align}
+%
+%\begin{itemize}
+%\item $\mathbf M$ - matrix with observed entries
+%\item $\Omega$ - vector of constrained matrix indices
+%\item $\mathbf H$ - matrix with approximate entries
+%\item $\Omega_H$ - vector of approximately penalised indices
+%\item $\tau$ - regularisation (optional)
+%\item $\mu$ - step size (optional)
+%\item $\rho$ - linearisation step size (optional)
+%\item $iterations$ - maximum number of iterations (optional)
+%\item $tol$ - stopping criteria tolerance (optional)
+%\end{itemize}
+
+\newpage
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
